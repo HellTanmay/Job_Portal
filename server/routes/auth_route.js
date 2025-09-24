@@ -4,7 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/auth_middleware');
-
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 const JWT_SECRET = 'wefihwofeiwfe778273973982303291801j0poiljhbbfdxfww'; // Change this in production
 
 // Register
@@ -24,12 +25,23 @@ router.post('/register', async (req, res) => {
     const user = new User({
       username,
       password: hashedPassword,
-      role: role // default role is 'user'
+      role: role 
     });
 
     await user.save();
-
-    res.status(200).json({ success:true, message: 'User  registered successfully' });
+     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+      res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // set true in production
+      sameSite: 'lax', // CSRF protection
+      maxAge: 3600000, // 1 hour in ms
+    });
+    res.status(200).json({ success:true, token,
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role
+      }, });
   } catch (err) {
     res.status(500).json({success:false, message: 'Server error' });
   }
@@ -82,9 +94,47 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 
+router.get('/profile',authMiddleware,async(req,res)=>{
+  const user=await User.findById(req.user.id).select('-password');
+  if(!user){
+    return res.status(404).json({success:false,message:"User not found"})
+  }
+  res.status(200).json({success:true,data:user})
+})
+
+router.put('/profile/edit',authMiddleware,async(req,res)=>{
+   try{
+console.log(req.body)
+
+  const  data = req.body;
+      let updateData = {
+        username:data.username,
+        about:data.about,
+        firstName:data.firstName,
+        lastName:data.lastName,
+        email:data.email,
+        address: {
+          country:data.country,
+          city:data.city,
+        },
+        resume:data.resume
+      };
+      console.log(updateData)
+  const user=await User.findByIdAndUpdate(req.user.id,updateData,{new:true})
+  if(!user){
+    return res.status(404).json({success:false,message:"User not found"})
+  }
+ 
+    res.status(200).json({success:true,data:user})
+  }
+  catch(err){
+    console.log(err)
+    res.status(500).json({success:false,message:"Server Error"})
+  }
+})
+
 router.get('/protected',authMiddleware, async(req, res) => {
   const user= await User.findById(req.user.id).select('-password');
- console.log(user)
 
   if(!user){
     return res.status(400).json({success:false, message: 'User not found' });

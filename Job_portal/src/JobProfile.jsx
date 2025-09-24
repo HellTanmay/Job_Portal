@@ -17,10 +17,9 @@ function JobProfile() {
   const [formData, setFormData] = useState({
     username: "",
     about: "",
-    firstName: "",
-    lastName:"",
+    fullname: "",
     email: "",
-    country: "",
+      country: "",
     city: "",
   });
   const [resumeFile, setResumeFile] = useState(null);
@@ -35,21 +34,22 @@ function JobProfile() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-
-        const res = await axiosInstance.get("/auth/profile");
+        // Assuming an endpoint like '/user/profile' to fetch current user's profile
+        const res = await axiosInstance.get("/auth/profile"); // Adjust endpoint as needed
         setProfileData(res.data.data);
         console.log(profileData)
-        
+        // Pre-populate form if editing
         if (res.data) {
-          
+          const fullname =res.data.data.firstName ;
           setFormData({
             username: res.data.data?.username || "",
             about: res.data.data?.about || "",
-            firstName: res.data.data.firstName ||"",
-            lastName:res.data.data.lastName||"",
+            fullname: fullname,
             email: res.data.data?.email || "",
-            country: res.data?.data?.address?.country || "",
-            city: res.data?.data?.address?.city || "",
+            address: {
+              country: res.data?.data?.address?.country || "",
+              city: res.data?.data?.address?.city || "",
+            },
           });
         }
       } catch (err) {
@@ -84,16 +84,17 @@ function JobProfile() {
     setResult(null);
     // Reset form to original data
     if (profileData) {
+          const fullname =res.data.data.firstName ;
 
        setFormData({
             username: res.data.data?.username || "",
             about: res.data.data?.about || "",
-            firstName: res.data.data.firstName||"" ,
-            lastName:res.data.data.lastName||"",
+            fullname: fullname,
             email: res.data.data?.email || "",
-            country: res.data?.data?.address?.country || "",
-            city: res.data?.data?.address?.city || "",
-            
+            address: {
+              country: res.data?.data?.address?.country || "",
+              city: res.data?.data?.address?.city || "",
+            },
           });
     }
   };
@@ -109,11 +110,9 @@ console.log(formData)
     Object.entries(formData).forEach(([key, value]) => {
       data.append(key, value);
     });
-    console.log(formData)
+
     try {
-      const res = await axiosInstance.put("/auth/profile/edit", data,{
-        headers:{"Content-Type":"application/json"}
-      });
+      const res = await axiosInstance.put("/auth/profile/edit", data);
       setResult(res.data.data);
       console.log(res.data);
 
@@ -194,7 +193,7 @@ console.log(formData)
                         id="username"
                         placeholder="janesmith"
                         value={formData.username}
-                        onChange={(handleChange)}
+                        onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                       />
                     </div>

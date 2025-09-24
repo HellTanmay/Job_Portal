@@ -5,6 +5,8 @@ const multer = require('multer');
 const axios = require('axios');
 const authMiddleware = require('../middleware/auth_middleware');
 const User = require('../models/User');
+const cheerio=require('cheerio');
+
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -54,5 +56,30 @@ router.post('/jobs',authMiddleware, async (req, res) => {
   await job.save();
   res.json(job);
 });
+
+
+
+router.get("/linkedinjob",async(req,res)=>{
+  const url = 'https://www.linkedin.com/jobs/search?keywords=data%20analyst&location=India';
+  const { data } = await axios.get(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' } // bypass bot detection
+  });
+
+  const $ = cheerio.load(data);
+  const jobs = [];
+
+  $('.base-card').each((i, el) => {
+    const title = $(el).find('.base-search-card__title').text().trim();
+    const company = $(el).find('.base-search-card__subtitle a').text().trim();
+    const location = $(el).find('.job-search-card__location').text().trim();
+    const link = $(el).find('a.base-card__full-link').attr('href');
+
+    jobs.push({ title, company, location, link });
+  });
+
+  res.json(jobs)  
+})
+
+
 
 module.exports = router;
