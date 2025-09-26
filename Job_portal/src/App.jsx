@@ -9,6 +9,7 @@ import AddJob from "./Job_Pages/AddJobs";
 import Register from "./Authentication/Register";
 import Login from "./Authentication/Login";
 import { LoginProvider } from "./Authentication/Auth_context";
+import ViewJob from "./Job_Pages/ViewJob";
 
 function App() {
   return (
@@ -22,8 +23,10 @@ function App() {
               <Route path="/" element={<JobList />} />
               <Route path="/profile" element={<JobProfile />} />
               <Route path="/addjob" element={<AddJob />} />
+              <Route path="/viewjob/:id" element={<ViewJob/>}/>
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
+
             </Routes>
           </Router>
         </LoginProvider>

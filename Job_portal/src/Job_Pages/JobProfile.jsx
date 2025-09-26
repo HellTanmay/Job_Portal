@@ -112,7 +112,7 @@ console.log(formData)
     console.log(formData)
     try {
       const res = await axiosInstance.put("/auth/profile/edit", data,{
-        headers:{"Content-Type":"application/json"}
+        headers:{"Content-Type":"multipart/form-data"}
       });
       setResult(res.data.data);
       console.log(res.data);
@@ -422,9 +422,9 @@ console.log(formData)
                         <DocumentTextIcon className="h-5 w-5 mr-2 text-gray-600" />
                         Resume
                       </h3>
-                      {profileData?.resumeUrl ? (
+                      {profileData?.resume ? (
                         <a
-                          href={profileData.resumeUrl}
+                          href={`http://localhost:5000${profileData.resume}`}
                           download
                           className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition duration-200"
                         >

@@ -5,7 +5,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/auth_middleware');
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const storage=require('../middleware/FileUpload')
+
+const upload = multer({ storage });
+
 const JWT_SECRET = 'wefihwofeiwfe778273973982303291801j0poiljhbbfdxfww'; // Change this in production
 
 // Register
@@ -102,9 +105,9 @@ router.get('/profile',authMiddleware,async(req,res)=>{
   res.status(200).json({success:true,data:user})
 })
 
-router.put('/profile/edit',authMiddleware,async(req,res)=>{
+router.put('/profile/edit',upload.single('resume'), authMiddleware,async(req,res)=>{
    try{
-console.log(req.body)
+     
 
   const  data = req.body;
       let updateData = {
@@ -117,8 +120,10 @@ console.log(req.body)
           country:data.country,
           city:data.city,
         },
-        resume:data.resume
       };
+       if (req.file) {
+        updateData.resume = `/uploads/${req.file.filename}`;
+      }
       console.log(updateData)
   const user=await User.findByIdAndUpdate(req.user.id,updateData,{new:true})
   if(!user){
